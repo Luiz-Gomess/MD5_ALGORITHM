@@ -1,0 +1,76 @@
+# Constante ROTATE_BY:
+# Essa lista contém os valores de deslocamento (em número de bits) utilizados nas operações de rotação à esquerda
+# durante cada uma das 64 iterações do algoritmo MD5.
+# O objetivo dessas rotações é embaralhar os bits de forma específica, dependendo da iteração,
+# para maximizar a difusão (spreading) dos bits da mensagem original.
+
+# A lista está dividida em quatro grupos de 16 valores cada, correspondendo às quatro rodadas principais do MD5:
+# 1. Grupo 1 (índices 0 a 15): Usado nas primeiras 16 iterações.
+#    - Valores: 7, 12, 17, 22 repetidos 4 vezes.
+# 2. Grupo 2 (índices 16 a 31): Usado nas próximas 16 iterações.
+#    - Valores: 5, 9, 14, 20 repetidos 4 vezes.
+# 3. Grupo 3 (índices 32 a 47): Usado nas iterações 32 a 47.
+#    - Valores: 4, 11, 16, 23 repetidos 4 vezes.
+# 4. Grupo 4 (índices 48 a 63): Usado nas últimas 16 iterações.
+#    - Valores: 6, 10, 15, 21 repetidos 4 vezes.
+
+# Explicação técnica:
+# - Durante cada iteração, o valor atual de `ROTATE_BY[i]` é usado para determinar quantos bits
+#   a soma calculada no passo atual deve ser rotacionada à esquerda.
+# - A rotação garante que os bits se misturem melhor, contribuindo para a complexidade do hash final.
+# - Cada grupo tem deslocamentos específicos que correspondem às funções hash usadas nas respectivas rodadas.
+  
+
+----------------------------------------------------------------------------------------------------------------------
+
+
+Constante CONSTANTS:
+# Contém 64 valores pré-calculados usados durante o processamento de cada uma das 64 iterações da etapa de digest.
+# Eles são derivados das funções seno (sin) para garantir que os valores sejam pseudo-aleatórios e bem distribuídos.
+
+# Como os valores são gerados:
+# - Para cada índice `i` (de 0 a 63), o valor absoluto do seno de `(i + 1)` é calculado.
+# - O valor do seno é multiplicado por 2^32 (4294967296) e convertido em um inteiro.
+#   Isso garante que os valores sejam números inteiros de 32 bits.
+# - Essa abordagem usa o seno como uma função matemática "imprevisível" para gerar constantes únicas.
+
+# Significado:
+# - Os valores gerados fornecem um conjunto fixo de números que são usados para adicionar variação
+#   ao cálculo do hash em cada iteração.
+# - Isso torna o algoritmo mais resistente a padrões previsíveis e ajuda a espalhar os bits da mensagem original.
+
+# Observação:
+# - A fórmula `math.sin(i + 1)` usa `i + 1` porque o índice `i` em Python começa em 0,
+#   mas o MD5 usa índices começando em 1 para calcular os senos.
+# - Os valores são multiplicados por 2^32 porque o algoritmo opera com números de 32 bits.
+
+----------------------------------------------------------------------------------------------------------
+
+# Constante MD_BUFFERS:
+# Essa lista contém os quatro valores iniciais (em hexadecimal) utilizados como vetores de estado do algoritmo MD5.
+# Esses valores são conhecidos como buffers `A`, `B`, `C` e `D` e representam o estado interno do hash
+# ao longo do processamento da mensagem.
+
+# Valores iniciais:
+# - Esses valores foram definidos na especificação original do MD5 (RFC 1321).
+# - Cada valor é um número inteiro de 32 bits, representado em formato hexadecimal:
+#   - 0x67452301: Representa o buffer A
+#   - 0xefcdab89: Representa o buffer B
+#   - 0x98badcfe: Representa o buffer C
+#   - 0x10325476: Representa o buffer D
+
+# Significado:
+# - Os valores iniciais são cuidadosamente escolhidos para garantir que o algoritmo seja determinístico
+#   e funcione corretamente para todas as entradas possíveis.
+# - Durante o processamento da mensagem, esses valores serão constantemente atualizados
+#   com base nas operações realizadas em cada bloco de 512 bits.
+
+# Função dos buffers:
+# - Cada buffer armazena uma parte intermediária do estado do hash.
+# - No final do processamento, os valores finais de A, B, C e D são concatenados para formar o hash MD5,
+#   que tem um tamanho fixo de 128 bits (32 caracteres em formato hexadecimal).
+
+# Exemplo:
+# - A mensagem de entrada é dividida em blocos de 512 bits.
+# - Para cada bloco, os valores de A, B, C e D são atualizados com base nas operações do algoritmo.
+# - Os valores finais desses buffers formam o hash da mensagem.
