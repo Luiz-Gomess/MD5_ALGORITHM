@@ -1,5 +1,6 @@
 import hashlib
 import math
+import time
 
 
 # Contém os valores de deslocamento utilizados nas operações de rotação à esquerda
@@ -47,10 +48,12 @@ def rotacao_a_esquerda(valor, qtde):
 
 
 
-def pad_message(message):
+def padding(message):
     """
     Aplica o padding ao final da mensagem.
-
+    Para que a mensagem passe para a etapa do hashing em si, é necessário que ela esteja no tamanho padrão de 512 bits.
+    Para isso, adiciona-se o bit 1 a mensagem e finitos numeros 0 até que a mensagem esteja com um tamanho de 448 bits 
+    modulo 512, ou seja, que a mensagem possua 64 bits a menos que o multilo mais próximo de 512.
 
     Args:
         message (bytearray): a mensagem original como uma sequência de bytes.
@@ -103,8 +106,8 @@ def process_block(message):
 
         # Executa 64 iterações de transformação para o bloco atual.
         for i in range(64):
-            # Aplica uma das quatro funções não-lineares f, G, H ou I dependendo da iteração.
-            # a variável g é utilzada para acessar blocos da mensagem de forma não-linear. 
+            # Aplica uma das quatro funções bit a bit f, G, H ou I dependendo da iteração.
+            # A variável g é utilzada para acessar blocos da mensagem de forma não-linear. 
             if i < 16:
                 f = (b & c) | (~b & d) #Função f
                 g = i
@@ -124,12 +127,12 @@ def process_block(message):
             to_rotate = a + f + CONSTANTS[i] + int.from_bytes(bloco[4 * g:4 * g + 4], byteorder='little')
 
             # Realiza a rotação à esquerda e atualiza os valores dos buffers a, b, c e d.
-            # a, b, c, d = d, (b + rotacao_a_esquerda(to_rotate, ROTATE_BY[i])) & 0xFFFFFFFF, b, c
             d_temp = d
             d = c
             c = b
-            b = (b + rotacao_a_esquerda(to_rotate, ROTATE_BY[i])) & 0xFFFFFFFF
+            b = (b + rotacao_a_esquerda(to_rotate, ROTATE_BY[i])) & 0xFFFFFFFF 
             a = d_temp
+            # O valor 0xFFFFFFFF é necessário para garantir que os valores tenham 32 bits, visto que python consegue trabalhar com numeros maiores.
 
 
         # Após processar todas as 64 iterações, atualiza os valores dos buffers no estado.
@@ -141,7 +144,7 @@ def process_block(message):
 
 
 
-def digest_to_hex(digest):
+def digest_para_hexa(digest):
     """Converte o digest em uma string hexadecimal de 128 bits."""
     raw = digest.to_bytes(16, byteorder='little')
     return '{:032x}'.format(int.from_bytes(raw, byteorder='big'))               
@@ -150,17 +153,62 @@ def digest_to_hex(digest):
 def md5(message):
     """Calcula o hash MD5 de uma mensagem de entrada."""
     message_bytes = bytearray(message, 'ascii')
-    padded_message = pad_message(message_bytes)
+    padded_message = padding(message_bytes)
     digest = process_block(padded_message)
-    return digest_to_hex(digest)
+    return digest_para_hexa(digest)
 
 
 if __name__ == "__main__":
-    input_message = "ABCD"
-    custom_hash = md5(input_message)
-    print("Custom MD5 Hash:", custom_hash)
 
-    # Validação com a implementação oficial
-    official_hash = hashlib.md5(input_message.encode()).hexdigest()
-    print("Official MD5 Hash:", official_hash)
-    print(official_hash == custom_hash)
+    messagem = "MD5"
+
+    #-----Teste de validação---------
+
+    # Mede o tempo da implementação customizada
+    md5_customizado = md5(messagem)
+    print("MD5 Implementado:", md5_customizado)
+
+    # Mede o tempo da implementação oficial
+    md5_hashlib = hashlib.md5(messagem.encode()).hexdigest()
+    print("MD5 hashlib:", md5_hashlib)
+
+    # Compara os resultados
+    print("É igual ?", md5_hashlib == md5_customizado)
+
+    #-----Testes de tempo de execução com entrada maior-----
+
+    entrada_grande = open("entrada_md5.txt", 'r')
+    texto = entrada_grande.read()
+
+    inicio_customizado = time.time()
+    md5_customizado = md5(texto)
+    fim_customizado = time.time()
+    print("MD5 Implementado:", md5_customizado)
+    print("Tempo de execução (customizado): {:.6f} segundos".format(fim_customizado - inicio_customizado))
+
+    inicio_hashlib = time.time()
+    md5_hashlib = hashlib.md5(texto.encode()).hexdigest()
+    fim_hashlib = time.time()
+    print("MD5 hashlib:", md5_hashlib)
+    print("Tempo de execução (hashlib): {:.6f} segundos".format(fim_hashlib - inicio_hashlib))
+
+    print("É igual ?", md5_hashlib == md5_customizado)
+
+    #-----Testes de imutabilidade-------
+
+    menssagem_1 = "MD5"
+    menssagem_2 = "mD5"
+
+    md5_customizado = md5(menssagem_1)
+    print("MD5 Implementado:", md5_customizado)
+
+    md5_hashlib = hashlib.md5(menssagem_2.encode()).hexdigest()
+    print("MD5 hashlib:", md5_hashlib)
+
+    print("É igual ?", md5_hashlib == md5_customizado)
+
+
+
+
+
+
